@@ -1,0 +1,112 @@
+name: hifs-${APP_NAME}-java
+
+networks:
+  app-network:
+    name: hifs-${APP_NAME}-java-network-${ENV:-dev}
+    driver: bridge
+
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: hifs-${APP_NAME}-java-app-${ENV:-dev}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${ENV:-dev}
+      - JAVA_OPTS=${JAVA_OPTS:-"-Xmx512m -Xms512m"}
+    depends_on:
+      - mysql
+      - redis
+      - rocketmq-namesrv
+    networks:
+      - app-network
+
+
+  nginx:
+    image: nginx:1.21
+    container_name: hifs-${APP_NAME}-java-nginx-${ENV:-dev}
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./data/nginx/logs:/var/log/nginx
+    depends_on:
+      - rocketmq-dashboard
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: hifs-${APP_NAME}-java-mysql-${ENV:-dev}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: hifs_${APP_NAME}
+      MYSQL_USER: ${MYSQL_USER:-hifs}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-hifs123}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6.2
+    container_name: hifs-${APP_NAME}-java-redis-${ENV:-dev}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./data/redis:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf
+    networks:
+      - app-network
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.4
+    container_name: hifs-${APP_NAME}-java-rocketmq-namesrv-${ENV:-dev}
+    ports:
+      - "${ROCKETMQ_NAMESRV_PORT:-9876}:9876"
+    volumes:
+      - ./data/rocketmq/namesrv/logs:/home/rocketmq/logs
+    command: ./mqnamesrv
+    networks:
+      - app-network
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.4
+    container_name: hifs-${APP_NAME}-java-rocketmq-broker-${ENV:-dev}
+    ports:
+      - "${ROCKETMQ_BROKER_PORT:-10911}:10911"
+      - "${ROCKETMQ_BROKER_PORT2:-10909}:10909"
+    volumes:
+      - ./data/rocketmq/broker/logs:/home/rocketmq/logs
+      - ./data/rocketmq/broker/store:/home/rocketmq/store
+      - ./rocketmq/broker/conf/broker.conf:/home/rocketmq/rocketmq-5.1.4/conf/broker.conf
+    command: ./mqbroker -n rocketmq-namesrv:9876 -c ../conf/broker.conf
+    environment:
+      JAVA_OPT_EXT: "-server -Xms512m -Xmx512m"
+    depends_on:
+      - rocketmq-namesrv
+    networks:
+      - app-network
+
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:1.0.0
+    container_name: hifs-${APP_NAME}-java-rocketmq-dashboard-${ENV:-dev}
+    ports:
+      - "${ROCKETMQ_DASHBOARD_PORT:-8080}:8080"
+    environment:
+      JAVA_OPTS: -Drocketmq.namesrv.addr=rocketmq-namesrv:9876
+    depends_on:
+      - rocketmq-namesrv
+      - rocketmq-broker
+    networks:
+      - app-network
+
+

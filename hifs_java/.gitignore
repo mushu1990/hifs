@@ -1,0 +1,36 @@
+# 构建输出目录
+/build/
+/bin/
+/target/
+/out/
+
+# IDE 相关文件和目录
+/.idea/
+/.vscode/
+*.iml
+*.iws
+*.ipr
+
+# 编译生成的文件
+*.class
+*.jar
+*.war
+
+# 日志文件
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Maven 相关
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle 相关
+.gradle/
+build/

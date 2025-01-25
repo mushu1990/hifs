@@ -1,0 +1,29 @@
+package com.hifs.app.system.controller;
+
+import com.hifs.app.system.domain.dto.AuthLoginDto;
+import com.hifs.app.system.domain.entity.SystemAuthUserEntity;
+import com.hifs.app.system.service.ISystemAuthUserService;
+import com.hifs.hicore.core.domain.AjaxResult;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+
+@RestController
+@RequestMapping("/system/auth")
+public class AuthController {
+
+    @Autowired
+    public ISystemAuthUserService userService;
+
+
+    @PostMapping("/login")
+    @PreAuthorize("permitAll()") // 允许所有用户访问
+    public AjaxResult login(@RequestBody @Valid AuthLoginDto dto) {
+        System.out.println(dto);
+        return AjaxResult.success(dto);
+    }
+}
