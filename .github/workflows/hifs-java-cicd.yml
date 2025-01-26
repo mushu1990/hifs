@@ -70,14 +70,21 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT }} # 指定 SSH 端口
-          source: "$DOCKER_DIR/**" # 传输整个docker目录
-          target: "$DEPLOY_DIR/"
-          strip_components:
-            3 # 路径转换示例：
-            # hifs_java/docker/file → DEPLOY_DIR/file
-            # hifs_java/docker/app/file.jar → DEPLOY_DIR/app/file.jar
+          port: ${{ secrets.SERVER_PORT }}
+          source: "${{ env.DOCKER_DIR }}"
+          target: "${{ env.DEPLOY_DIR }}"
+          strip_components: 2
           overwrite: true
+          debug: true
+
+      # 添加目录检查步骤
+      - name: Debug Directory Content
+        run: |
+          echo "=== 本地目录结构 ==="
+          ls -R ${{ env.DOCKER_DIR }}
+
+          echo "=== 要传输的内容 ==="
+          find ${{ env.DOCKER_DIR }} -type f
 
       # =====================================
       # 阶段3：触发服务器部署（使用现有脚本）
