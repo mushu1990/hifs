@@ -115,6 +115,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }} # 指定 SSH 端口
           script: |
-            cd $DOCKER_DIR
+            cd ${{ env.DOCKER_DIR }}
             chmod +x deploy.sh  # 确保可执行权限
             ./deploy.sh prod
