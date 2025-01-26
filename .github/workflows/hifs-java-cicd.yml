@@ -38,11 +38,15 @@ jobs:
             hifs_java/**/pom.xml
             hifs_java/pom.xml
 
-      # 添加在 Build with Maven 步骤之前
+      # 修改 Debug Maven Cache 步骤
       - name: Debug Maven Cache
         run: |
+          # 确保 .m2/repository 目录存在
+          mkdir -p ~/.m2/repository
+
           echo "Maven 本地仓库内容："
-          ls -la ~/.m2/repository/
+          ls -la ~/.m2/repository/ || echo "仓库目录为空"
+
           echo "当前工作目录 POM 文件："
           find . -name "pom.xml"
 
