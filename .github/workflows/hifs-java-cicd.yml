@@ -27,6 +27,15 @@ jobs:
       # =====================================
       - uses: actions/checkout@v4
 
+      # 添加 Maven 缓存
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
       - name: Generate JAR to App Dir
         run: |
           # 清理可能残留的旧容器
