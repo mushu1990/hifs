@@ -27,14 +27,24 @@ jobs:
       # =====================================
       - uses: actions/checkout@v4
 
-      # 添加 Maven 缓存
+      # 设置 JDK 环境
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17" # 根据您的项目需求调整 Java 版本
+          distribution: "temurin"
+          cache: "maven" # 启用 actions/setup-java 内置的 Maven 缓存
+
+      # Maven 缓存优化
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/com/yourcompany  # 排除您自己的包（根据需要调整）
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-m2-
+            ${{ runner.os }}-maven-
 
       - name: Generate JAR to App Dir
         run: |
