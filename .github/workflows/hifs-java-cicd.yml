@@ -38,6 +38,14 @@ jobs:
             hifs_java/**/pom.xml
             hifs_java/pom.xml
 
+      # 添加在 Build with Maven 步骤之前
+      - name: Debug Maven Cache
+        run: |
+          echo "Maven 本地仓库内容："
+          ls -la ~/.m2/repository/
+          echo "当前工作目录 POM 文件："
+          find . -name "pom.xml"
+
       # 构建项目
       - name: Build with Maven
         working-directory: ${{ env.SOURCE_DIR }}
