@@ -68,7 +68,8 @@ jobs:
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }} # 指定 SSH 端口
           source: "$DOCKER_DIR/**" # 传输整个docker目录
           target: "$DEPLOY_DIR/"
           strip_components:
@@ -85,7 +86,8 @@ jobs:
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }} # 指定 SSH 端口
           script: |
             cd $DEPLOY_DIR
             chmod +x deploy.sh  # 确保可执行权限
