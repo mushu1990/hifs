@@ -113,8 +113,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          port: ${{ secrets.SERVER_PORT }} # 指定 SSH 端口
-          run: |
-            cd ${{ env.DOCKER_DIR }}
-            chmod +x deploy.sh  # 确保可执行权限
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd ${{ env.DEPLOY_DIR }}/docker
+            chmod +x deploy.sh
             ./deploy.sh prod
