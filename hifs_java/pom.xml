@@ -19,6 +19,8 @@
         <java.version>17</java.version>
         <spring-boot.version>3.2.3</spring-boot.version>
     </properties>
+
+    
     <modules>
         <module>hicore</module>
         <module>app</module>
