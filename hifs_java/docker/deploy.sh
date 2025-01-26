@@ -32,25 +32,11 @@ else
     set +a
 fi
 
-# 转换文件格式为 Unix
-dos2unix rocketmq/broker/conf/broker.conf.template 2>/dev/null || true
-
-# 调试信息
-echo "Current environment variables:"
-env | grep BROKER_IP1
-
-echo "Content of broker.conf.template:"
-cat rocketmq/broker/conf/broker.conf.template
 
 # 生成配置文件
 envsubst < rocketmq/broker/conf/broker.conf.template > rocketmq/broker/conf/broker.conf
 envsubst < redis/redis.conf.template > redis/redis.conf
 
-
-
-# 检查生成的配置文件
-echo "Generated broker.conf:"
-cat rocketmq/broker/conf/broker.conf
 
 # 启动服务
 if [ "$ENV" = "dev" ]; then

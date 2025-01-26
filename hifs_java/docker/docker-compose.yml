@@ -7,10 +7,12 @@ networks:
 
 services:
   app:
-    build:
-      context: ../
-      dockerfile: docker/Dockerfile
+    image: openjdk:17-jdk-slim
     container_name: hifs-${APP_NAME}-java-app-${ENV:-dev}
+    volumes:
+      - ./app:/app    # 挂载本地app目录（包含jar包）
+    working_dir: /app
+    command: java ${JAVA_OPTS:-"-Xmx512m -Xms512m"} -jar *.jar
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
@@ -22,6 +24,8 @@ services:
       - rocketmq-namesrv
     networks:
       - app-network
+    profiles:
+      - prod
 
 
   nginx:

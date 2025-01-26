@@ -1,32 +1,47 @@
-# 构建阶段：使用 Maven 4.x + JDK 17
-FROM maven:4.0.0-alpha-13-openjdk-17 AS builder
+# ====================== 全局变量 ======================
+ARG MAIN_MODULE="main-module"
+ARG JAR_NAME="application.jar"
+
+# ====================== 阶段1：Maven构建 ======================
+FROM maven:3.9.9-eclipse-temurin-17 AS builder
+
+# 重新声明 ARG 变量（每个阶段都需要声明才能使用）
+ARG MAIN_MODULE
 
 WORKDIR /build
-# 先复制 pom.xml 并下载依赖（利用 Docker 缓存）
 COPY pom.xml .
+COPY */pom.xml ./
+# 离线下载所有依赖（利用Docker缓存加速）
 RUN mvn dependency:go-offline -B
 
-# 复制源码并构建
-COPY src/ ./src/
+# 复制所有源码
+COPY . .
+
+# 构建所有模块
 RUN mvn clean package -DskipTests
 
-# ----------------------------
+# ====================== 阶段2：JAR文件整理 ======================
+FROM alpine:3.18 AS jar-exporter
 
-# 运行阶段：使用轻量级 JRE 17
-FROM openjdk:17-jdk-slim
+# 重新声明 ARG 变量
+ARG MAIN_MODULE
+ARG JAR_NAME
 
-# 设置时区、非 root 用户
-RUN apt-get update && apt-get install -y --no-install-recommends tzdata \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && useradd -m appuser
-WORKDIR /app
-USER appuser
+WORKDIR /output
 
-# 从构建阶段复制产物
-COPY --from=builder --chown=appuser:appuser /build/target/*.jar ./app.jar
+# 复制所有构建的 JAR 文件
+COPY --from=builder /build/**/target/*.jar ./app/
 
-# 暴露端口与健康检查
-EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=3s CMD curl -f http://localhost:8080/actuator/health || exit 1
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 仅保留主模块的 JAR 文件
+RUN MAIN_JAR=$(find ./app -name "$MAIN_MODULE*.jar" | head -n 1) && \
+    if [ -z "$MAIN_JAR" ]; then \
+        echo "错误：未找到主模块 JAR 文件，目录内容如下："; \
+        ls -l ./app; \
+        exit 1; \
+    else \
+        # 去除版本号，保留主模块名
+        MAIN_JAR_NAME=$(echo "$MAIN_JAR" | sed -E "s/-[0-9]+\.[0-9]+\.[0-9]+\.jar$/.jar/"); \
+        echo "找到 JAR: $MAIN_JAR，重命名为 $JAR_NAME"; \
+        mv "$MAIN_JAR" "./app/$JAR_NAME"; \
+    fi
+
