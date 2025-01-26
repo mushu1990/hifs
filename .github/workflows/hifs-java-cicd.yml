@@ -47,11 +47,16 @@ jobs:
       # 修改 Debug Maven Cache 步骤
       - name: Debug Maven Cache
         run: |
+
+          mkdir -p ~/.m2/repository
+
           echo "Maven 缓存状态："
           echo "CACHE_KEY: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}"
 
+           
+
           echo "Maven 本地仓库内容："
-          ls -la ~/.m2/ || echo "仓库目录为空"
+          ls -la ~/.m2/repository/ || echo "仓库目录为空"
 
           echo "当前工作目录 POM 文件："
           find . -name "pom.xml"
