@@ -27,24 +27,14 @@ jobs:
       # =====================================
       - uses: actions/checkout@v4
 
-      # 设置 JDK 环境
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: "17" # 根据您的项目需求调整 Java 版本
-          distribution: "temurin"
-          cache: "maven" # 启用 actions/setup-java 内置的 Maven 缓存
-
-      # Maven 缓存优化
+      # 添加 Maven 缓存
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.m2/repository
-            !~/.m2/repository/com/yourcompany  # 排除您自己的包（根据需要调整）
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-m2-
 
       - name: Generate JAR to App Dir
         run: |
@@ -54,18 +44,21 @@ jobs:
           # 构建镜像提取JAR
           docker build -f $DOCKER_DIR/Dockerfile -t $CONTAINER_NAME $SOURCE_DIR
 
-          # 创建临时容器
+           # 创建容器（不需要启动）
           docker create --name $CONTAINER_NAME $CONTAINER_NAME
-
-          # 验证JAR存在性
-          if ! docker exec $CONTAINER_NAME ls /output/app/*.jar >/dev/null; then
-            echo "❌ Error: JAR文件未生成！"
-            exit 1
-          fi
 
           # 复制JAR到本地app目录
           mkdir -p $DOCKER_DIR/app
           docker cp $CONTAINER_NAME:/output/app/. $DOCKER_DIR/app/
+
+          # 验证JAR文件
+          if ! ls $DOCKER_DIR/app/*.jar >/dev/null 2>&1; then
+            echo "❌ 错误：JAR文件未生成！"
+            echo "📝 构建目录内容："
+            ls -la $DOCKER_DIR/app/
+            docker rm -f $CONTAINER_NAME
+            exit 1
+          fi
 
           # 强制清理容器
           docker rm -f $CONTAINER_NAME
