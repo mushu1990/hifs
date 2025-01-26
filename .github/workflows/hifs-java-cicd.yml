@@ -27,41 +27,39 @@ jobs:
       # =====================================
       - uses: actions/checkout@v4
 
-      # 添加 Maven 缓存
-      - name: Cache Maven packages
-        uses: actions/cache@v3
+      # 设置 JDK 并配置 Maven 缓存
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
+          cache-dependency-path: |
+            hifs_java/**/pom.xml
+            hifs_java/pom.xml
 
-      - name: Generate JAR to App Dir
+      # 构建项目
+      - name: Build with Maven
+        working-directory: ${{ env.SOURCE_DIR }}
         run: |
-          # 清理可能残留的旧容器
-          docker rm -f $CONTAINER_NAME || true
+          mvn clean package -DskipTests
 
-          # 构建镜像提取JAR
-          docker build -f $DOCKER_DIR/Dockerfile -t $CONTAINER_NAME $SOURCE_DIR
+          # 创建 app 目录
+          mkdir -p ../docker/app
 
-           # 创建容器（不需要启动）
-          docker create --name $CONTAINER_NAME $CONTAINER_NAME
-
-          # 复制JAR到本地app目录
-          mkdir -p $DOCKER_DIR/app
-          docker cp $CONTAINER_NAME:/output/app/. $DOCKER_DIR/app/
-
-          # 验证JAR文件
-          if ! ls $DOCKER_DIR/app/*.jar >/dev/null 2>&1; then
-            echo "❌ 错误：JAR文件未生成！"
-            echo "📝 构建目录内容："
-            ls -la $DOCKER_DIR/app/
-            docker rm -f $CONTAINER_NAME
+          # 查找并移动启动器 JAR
+          MAIN_JAR=$(find . -name "booter*.jar" -not -path "*/target/original-*.jar")
+          if [ -z "$MAIN_JAR" ]; then
+            echo "❌ 错误：未找到主模块 JAR 文件"
             exit 1
           fi
 
-          # 强制清理容器
-          docker rm -f $CONTAINER_NAME
+          # 移动并重命名 JAR
+          cp "$MAIN_JAR" "../docker/app/application.jar"
+          echo "✅ JAR 已复制到 docker/app 目录"
+
+          # 显示结果
+          ls -l ../docker/app/
 
       # =====================================
       # 阶段2：传输整个docker目录到服务器
