@@ -9,10 +9,13 @@ on:
     branches: [main]
     paths:
       - "hifs_java/**"
+  # 手动触发：你可以在 GitHub 页面上手动点击按钮来触发工作流
+  workflow_dispatch:
 
 env:
+  SOURCE_DIR: hifs_java
   DOCKER_DIR: hifs_java/docker
-  DEPLOY_DIR: /opt/hifs  # 服务器目标目录
+  DEPLOY_DIR: /opt/hifs # 服务器目标目录
   CONTAINER_NAME: jar-builder-${{ github.run_id }}
 
 jobs:
@@ -30,7 +33,7 @@ jobs:
           docker rm -f $CONTAINER_NAME || true
 
           # 构建镜像提取JAR
-          docker build -f $DOCKER_DIR/Dockerfile -t $CONTAINER_NAME .
+          docker build -f $DOCKER_DIR/Dockerfile -t $CONTAINER_NAME $SOURCE_DIR
 
           # 创建临时容器
           docker create --name $CONTAINER_NAME $CONTAINER_NAME
@@ -57,11 +60,12 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "$DOCKER_DIR/**"  # 传输整个docker目录
+          source: "$DOCKER_DIR/**" # 传输整个docker目录
           target: "$DEPLOY_DIR/"
-          strip_components: 3  # 路径转换示例：
-                               # hifs_java/docker/file → DEPLOY_DIR/file
-                               # hifs_java/docker/app/file.jar → DEPLOY_DIR/app/file.jar
+          strip_components:
+            3 # 路径转换示例：
+            # hifs_java/docker/file → DEPLOY_DIR/file
+            # hifs_java/docker/app/file.jar → DEPLOY_DIR/app/file.jar
           overwrite: true
 
       # =====================================
