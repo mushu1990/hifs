@@ -10,13 +10,10 @@ ARG MAIN_MODULE
 
 
 WORKDIR /build
-COPY pom.xml .
-COPY */pom.xml ./
-# 离线下载所有依赖（利用Docker缓存加速）
-RUN mvn dependency:go-offline -B
-
 # 复制所有源码
 COPY . .
+# 离线下载所有依赖（利用Docker缓存加速）
+RUN mvn dependency:go-offline -B
 
 # 构建所有模块
 RUN mvn clean package -DskipTests
