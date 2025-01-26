@@ -116,6 +116,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd ${{ env.DEPLOY_DIR }}/docker
+            cd ${{ env.DEPLOY_DIR }}
             chmod +x deploy.sh
             ./deploy.sh prod
