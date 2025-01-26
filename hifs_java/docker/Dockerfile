@@ -1,5 +1,5 @@
 # ====================== 全局变量 ======================
-ARG MAIN_MODULE="main-module"
+ARG MAIN_MODULE="booter"
 ARG JAR_NAME="application.jar"
 
 # ====================== 阶段1：Maven构建 ======================
