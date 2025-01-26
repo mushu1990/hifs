@@ -23,7 +23,6 @@
         <module>booter</module>
         <module>app</module>
         <module>hicore</module>
-        <module>test</module>
     </modules>
     <dependencyManagement>
         <dependencies>

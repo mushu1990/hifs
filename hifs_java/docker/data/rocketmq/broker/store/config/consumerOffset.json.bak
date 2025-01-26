@@ -4,6 +4,13 @@
 		"stateVersion":0,
 		"timestamp":1737810866263
 	},
-	"groupTopicMap":{},
-	"offsetTable":{}
+	"groupTopicMap":{
+		"consumer-group":["demo-topic","%RETRY%consumer-group"]
+	},
+	"offsetTable":{
+		"demo-topic@consumer-group":{0:0,1:0,2:0,3:0
+		},
+		"%RETRY%consumer-group@consumer-group":{0:0
+		}
+	}
 }
