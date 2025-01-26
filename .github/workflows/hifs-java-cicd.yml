@@ -51,7 +51,7 @@ jobs:
           echo "CACHE_KEY: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}"
 
           echo "Maven 本地仓库内容："
-          ls -la ~/.m2/repository/ || echo "仓库目录为空"
+          ls -la ~/.m2/ || echo "仓库目录为空"
 
           echo "当前工作目录 POM 文件："
           find . -name "pom.xml"
@@ -114,7 +114,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           port: ${{ secrets.SERVER_PORT }} # 指定 SSH 端口
-          script: |
+          run: |
             cd ${{ env.DOCKER_DIR }}
             chmod +x deploy.sh  # 确保可执行权限
             ./deploy.sh prod
