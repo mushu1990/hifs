@@ -20,9 +20,9 @@
         <spring-boot.version>3.2.3</spring-boot.version>
     </properties>
     <modules>
-        <module>booter</module>
-        <module>app</module>
         <module>hicore</module>
+        <module>app</module>
+        <module>booter</module>
     </modules>
     <dependencyManagement>
         <dependencies>
