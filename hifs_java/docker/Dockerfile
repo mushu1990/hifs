@@ -8,6 +8,7 @@ FROM maven:3.9.9-eclipse-temurin-17 AS builder
 # 重新声明 ARG 变量（每个阶段都需要声明才能使用）
 ARG MAIN_MODULE
 
+
 WORKDIR /build
 COPY pom.xml .
 COPY */pom.xml ./
