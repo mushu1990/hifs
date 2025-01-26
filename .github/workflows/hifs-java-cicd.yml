@@ -1,0 +1,79 @@
+name: Hifs Java CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "hifs_java/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "hifs_java/**"
+
+env:
+  DOCKER_DIR: hifs_java/docker
+  DEPLOY_DIR: /opt/hifs  # 服务器目标目录
+  CONTAINER_NAME: jar-builder-${{ github.run_id }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # =====================================
+      # 阶段1：构建JAR到本地docker/app目录
+      # =====================================
+      - uses: actions/checkout@v4
+
+      - name: Generate JAR to App Dir
+        run: |
+          # 清理可能残留的旧容器
+          docker rm -f $CONTAINER_NAME || true
+
+          # 构建镜像提取JAR
+          docker build -f $DOCKER_DIR/Dockerfile -t $CONTAINER_NAME .
+
+          # 创建临时容器
+          docker create --name $CONTAINER_NAME $CONTAINER_NAME
+
+          # 验证JAR存在性
+          if ! docker exec $CONTAINER_NAME ls /output/app/*.jar >/dev/null; then
+            echo "❌ Error: JAR文件未生成！"
+            exit 1
+          fi
+
+          # 复制JAR到本地app目录
+          mkdir -p $DOCKER_DIR/app
+          docker cp $CONTAINER_NAME:/output/app/. $DOCKER_DIR/app/
+
+          # 强制清理容器
+          docker rm -f $CONTAINER_NAME
+
+      # =====================================
+      # 阶段2：传输整个docker目录到服务器
+      # =====================================
+      - name: Transfer Full Docker Dir
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "$DOCKER_DIR/**"  # 传输整个docker目录
+          target: "$DEPLOY_DIR/"
+          strip_components: 3  # 路径转换示例：
+                               # hifs_java/docker/file → DEPLOY_DIR/file
+                               # hifs_java/docker/app/file.jar → DEPLOY_DIR/app/file.jar
+          overwrite: true
+
+      # =====================================
+      # 阶段3：触发服务器部署（使用现有脚本）
+      # =====================================
+      - name: Execute Deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd $DEPLOY_DIR
+            chmod +x deploy.sh  # 确保可执行权限
+            ./deploy.sh prod
