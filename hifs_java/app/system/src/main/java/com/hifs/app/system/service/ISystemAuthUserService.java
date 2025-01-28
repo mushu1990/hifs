@@ -2,23 +2,20 @@ package com.hifs.app.system.service;
 
 
 import com.hifs.app.system.domain.entity.SystemAuthUserEntity;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
-@Service
+
 public interface ISystemAuthUserService {
 
+    List<SystemAuthUserEntity> findAll();
 
-    public List<SystemAuthUserEntity> findAll();
+    Optional<SystemAuthUserEntity> findById(Long id);
 
-    public List<SystemAuthUserEntity> findAll1();
+    void addUser(SystemAuthUserEntity user);
 
-    public SystemAuthUserEntity findById(Long id);
+    void updateUser(SystemAuthUserEntity user);
 
-    public void createUser(SystemAuthUserEntity user);
-
-    public void updateUser(SystemAuthUserEntity user);
-
-    public void deleteUser(Long id);
+    void deleteUser(Long id);
 }

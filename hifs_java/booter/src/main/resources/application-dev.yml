@@ -1,0 +1,22 @@
+# Spring配置
+spring:
+  # 数据源配置
+  datasource:
+    druid:
+      # 主库数据源
+      master:
+        url: jdbc:mysql://127.0.0.1:3306/hifs_app?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+        username: hifs
+        password: hifs123
+      # 从库数据源
+      slave:
+        # 从数据源开关/默认关闭
+        enabled: false
+        url: jdbc:mysql://123.57.63.1:3306/hifs?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+        username: root
+        password: 19901215
+  # 数据访问层配置
+  data:
+    redis:
+      enabled: false
+
