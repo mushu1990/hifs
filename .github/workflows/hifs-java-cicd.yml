@@ -2,11 +2,11 @@ name: Hifs Java CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [main,dev]
     paths:
       - "hifs_java/**"
   pull_request:
-    branches: [main]
+    branches: [main,dev]
     paths:
       - "hifs_java/**"
   # 手动触发：你可以在 GitHub 页面上手动点击按钮来触发工作流
