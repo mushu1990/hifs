@@ -46,16 +46,106 @@ user:
     # 密码锁定时间（默认10分钟）
     lockTime: 10
 
+
+# 监控配置
+management:
+  # 健康检查
+  health:
+    redis:
+      enabled: false
+    db:
+      enabled: false
+
+
 # Spring配置
 spring:
+  # 激活配置文件
+  profiles:
+    active: dev
+  # 自动配置
+  # autoconfigure:
+  #  exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   main:
     allow-bean-definition-overriding: true
+  # 数据源配置
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    druid:
+      # 主库数据源
+      master:
+        url: jdbc:mysql://123.57.63.1:3306/hifs?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+        username: root
+        password: 19901215
+      # 从库数据源
+      slave:
+        # 从数据源开关/默认关闭
+        enabled: false
+        url: jdbc:mysql://123.57.63.1:3306/hifs?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+        username: root
+        password: 19901215
+      # 初始连接数
+      initialSize: 5
+      # 最小连接池数量
+      minIdle: 10
+      # 最大连接池数量
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置连接超时时间
+      connectTimeout: 30000
+      # 配置网络超时时间
+      socketTimeout: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      # 配置一个连接在池中最大生存的时间，单位是毫秒
+      maxEvictableIdleTimeMillis: 900000
+      # 配置检测连接是否有效
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      webStatFilter:
+        enabled: true
+      statViewServlet:
+        enabled: true
+        # 设置白名单，不填则允许所有访问
+        allow:
+        url-pattern: /druid/*
+        # 控制台管理用户名和密码
+        login-username: hifs
+        login-password: 123456
+      filter:
+        stat:
+          enabled: true
+          # 慢SQL记录
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+  # 数据访问层配置
+  data:
+    redis:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+  cache:
+    type: simple  # 使用内存缓存 (默认)
+
+  
   # 资源信息
   messages:
     # 国际化资源文件路径
     basename: i18n/messages
-  profiles:
-    active: druid
+
   kafka:
     bootstrap-servers: localhost:9092  # Kafka broker 地址
     consumer:
@@ -79,7 +169,11 @@ spring:
       timeout: 10s
 
 
+
+
+
 rocketmq:
+  enabled: false  # true 表示启用，false 表示禁用
   nameServer: 127.0.0.1:9876
   producer:
     group: producer-group
@@ -98,13 +192,16 @@ token:
   expireTime: 30
 
 # MyBatis配置
-mybatis:
+mybatis-plus:
   # 搜索指定包别名
-  typeAliasesPackage: com.hifs.**.domain
+  typeAliasesPackage: com.**.domain.entity
   # 配置mapper的扫描，找到所有的mapper.xml映射文件
-  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  mapperLocations: classpath*:**/mapper/*Mapper.xml
   # 加载全局的配置文件
   configLocation: classpath:mybatis/mybatis-config.xml
+  global-config:
+    db-config:
+      id-type: auto  # 主键生成策略
 
 # PageHelper分页插件
 pagehelper:
@@ -118,6 +215,59 @@ swagger:
   enabled: true
   # 请求前缀
   pathMapping: /dev-api
+
+casbin:
+  # 是否启用 Casbin，默认启用。
+  enableCasbin: true
+
+  # 是否使用线程同步的 Enforcer，默认为 false
+  useSyncedEnforcer: false
+
+  # 是否使用分布式 Enforcer，默认为 false。
+  # 如果 useSyncedEnforcer 和 useDistributedEnforcer 都设置为 true，则会使用 useDistributedEnforcer。
+  useDistributedEnforcer: false
+
+  # 是否启用自动策略保存，如果适配器支持此功能，默认启用。
+  autoSave: true
+
+  # 存储类型 [file, jdbc]，目前支持 jdbc 数据库 [mysql (mariadb), h2, oracle, postgresql, db2]。
+  # 欢迎编写并提交你使用的 jdbc 适配器，参见: org.casbin.adapter.OracleAdapter
+  # jdbc 适配器会自动查找你在 spring.datasource 中配置的数据源信息。
+  # 默认使用 jdbc，并使用内置的 h2 数据库进行内存存储。
+  storeType: jdbc
+
+  # 当使用 jdbc 时，配置自定义的策略表名称，默认是 casbin_rule。
+  tableName: hi_system_auth_casbin_rule
+
+  # 数据源初始化策略 [create (自动创建数据表，已创建后不再初始化)，never (始终不初始化)]。
+  initializeSchema: create
+
+  # 本地模型配置文件地址，默认读取位置：classpath: casbin/model.conf。
+  model: classpath:casbin/model.conf
+
+  # 如果在默认位置找不到模型配置文件，并且 casbin.model 没有正确设置，则使用内置的默认 RBAC 模型，此设置默认为启用。
+  useDefaultModelIfModelNotSetting: true
+
+  # 本地策略配置文件地址，默认读取位置：classpath: casbin/policy.csv。
+  # 如果未找到配置文件，将抛出异常。
+  # 该配置项仅在 casbin.storeType 设置为 file 时生效。
+  policy: classpath:casbin/policy.csv
+
+  # 是否启用 CasbinWatcher 机制，默认为禁用。
+  # 如果启用此机制，casbin.storeType 必须设置为 jdbc，否则该配置无效。
+  enableWatcher: false
+
+  # CasbinWatcher 通知模式，默认为使用 Redis 进行通知同步，目前仅支持 Redis。
+  # 启用 Watcher 后，需要手动添加 spring-boot-starter-data-redis 依赖。
+  watcherType: redis
+
+  # 是否支持 spring 事务的 Watcher，默认为不启用。
+  # 如果启用此机制，当在 spring 事务中更新策略时，Watcher 会在提交后触发更新。
+  watcherTxSupport: false
+
+  exception:
+  # 异常设置，参见附件 A。
+
 
 # 防止XSS攻击
 xss:

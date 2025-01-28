@@ -17,7 +17,7 @@ import java.util.List;
 public class AuthController {
 
     @Autowired
-    public ISystemAuthUserService userService;
+    public ISystemAuthUserService systemAuthUserService;
 
 
     @PostMapping("/login")
@@ -25,5 +25,19 @@ public class AuthController {
     public AjaxResult login(@RequestBody @Valid AuthLoginDto dto) {
         System.out.println(dto);
         return AjaxResult.success(dto);
+    }
+
+
+    // 获取所有用户
+    @GetMapping("/user/lists")
+    public List<SystemAuthUserEntity> getAllUsers() {
+        return systemAuthUserService.findAll();
+    }
+
+    // 获取通过id
+    @GetMapping("/user/info/{id}")
+    @ResponseBody
+    public AjaxResult getUserById(@PathVariable Long id) {
+        return AjaxResult.success(systemAuthUserService.findById(id));
     }
 }
